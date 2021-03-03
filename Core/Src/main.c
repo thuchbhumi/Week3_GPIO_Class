@@ -53,6 +53,9 @@ typedef struct
 } ADCStructure;
 
 ADCStructure ADCChannel[3]={0};
+GPIO_PinState SwitchState[2];
+uint16_t ADCOutputConverted =0;
+uint16_t ADCMode =1;
 
 /* USER CODE END PV */
 
@@ -115,6 +118,24 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  //read analog
 	  ADCPollingMethodUpdate();
+	  SwitchState[0] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+	  if (SwitchState[1] == GPIO_PIN_RESET && SwitchState[0] == GPIO_PIN_SET){
+		  if (ADCMode ==1){
+			  ADCMode =0;
+		  }
+		  else{
+			  ADCMode =1;
+		  }
+	  }
+	  SwitchState[1] = SwitchState[0];
+
+	  //ADCMode
+	  if (ADCMode == 0){
+		  ADCOutputConverted = ((ADCChannel[0].Data*3300)/4096);
+	  }
+	  else{
+		  ADCOutputConverted = ((((ADCChannel[2].Data*3.3)/4096)-0.76)/0.0025)+25;
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -264,11 +285,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;
@@ -286,10 +307,10 @@ void ADCPollingMethodInit() {
 	ADCChannel[0].Config.Channel = ADC_CHANNEL_0;
 	ADCChannel[0].Config.Rank = 1;
 	ADCChannel[0].Config.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-	//PA1 - ADC IN1
-	ADCChannel[1].Config.Channel = ADC_CHANNEL_1;
-	ADCChannel[1].Config.Rank = 1;
-	ADCChannel[1].Config.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+//	//PA1 - ADC IN1
+//	ADCChannel[1].Config.Channel = ADC_CHANNEL_1;
+//	ADCChannel[1].Config.Rank = 1;
+//	ADCChannel[1].Config.SamplingTime = ADC_SAMPLETIME_3CYCLES;
 	//Temp
 	ADCChannel[2].Config.Channel = ADC_CHANNEL_TEMPSENSOR;
 	ADCChannel[2].Config.Rank = 1;
